@@ -57,12 +57,12 @@ export class ElementNodeProvider implements vscode.TreeDataProvider<Element> {
 
     // let elemetns: Element[] = this.lastParsed.imports.map(v => new Element(v.libraryName, "lib"));
     let elements: Element[];
-    try {
+    // try {
       elements = sourceToTreeViewElements(body);
-      this.lastElements = elements;
-    } catch (e) {
-      elements = this.lastElements;
-    }
+    //   this.lastElements = elements;
+    // } catch (e) {
+    //   elements = this.lastElements;
+    // }
 
     return Promise.resolve(elements);
   }
@@ -106,6 +106,8 @@ function findElementsPropery(form: TSESTree.ClassDeclaration): TSESTree.ClassPro
 }
 
 function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): Element[] {
+  if (element.elements == null) // handles contaienr with observable
+    return [];
   return element.elements.map(v => {
     let elementDef = callExpressionToElementDefinition(v as TSESTree.CallExpression);
     let children: Element[] = [];
@@ -127,6 +129,11 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
       let label = (elementDef.rootCallExpression.arguments[0] as any);
       if (label) {
         description = typeof(label.value) == "string" ? label.value : "";
+      }
+    } else if (elementDef.name == "Tab") {
+      let tabElements = elementDef.attributes.find(x => x.name === "tabElements").value[0];
+      if (tabElements) {
+        children = convertElementsToTreeViewElements(tabElements as any);
       }
     }
     return new Element(elementDef.name, description, children);
