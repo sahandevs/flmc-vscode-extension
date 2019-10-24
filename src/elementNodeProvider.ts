@@ -109,40 +109,48 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
   if (element.elements == null)
     // handles contaienr with observable
     return [];
-  return element.elements.map(v => {
-    let elementDef = callExpressionToElementDefinition(v as TSESTree.CallExpression);
-    let children: Element[] = [];
-    let description = "";
-    if (elementDef.name == "Container" || elementDef.name == "PaddedContainer") {
-      children = convertElementsToTreeViewElements(elementDef.rootCallExpression.arguments[0] as any);
-      let direction = elementDef.attributes.find(x => x.name === "direction");
-      if (direction) {
-        description = direction.value[0].property.name;
-      } else {
-        description = "Column";
+  return element.elements
+    .map(v => callExpressionToElementDefinition(v as TSESTree.CallExpression))
+    .filter(
+      v =>
+        !vscode.workspace
+          .getConfiguration()
+          .get<string>("flmc.ignoredElementsInInspector")
+          .includes(v.name)
+    )
+    .map(elementDef => {
+      let children: Element[] = [];
+      let description = "";
+      if (elementDef.name == "Container" || elementDef.name == "PaddedContainer") {
+        children = convertElementsToTreeViewElements(elementDef.rootCallExpression.arguments[0] as any);
+        let direction = elementDef.attributes.find(x => x.name === "direction");
+        if (direction) {
+          description = direction.value[0].property.name;
+        } else {
+          description = "Column";
+        }
+      } else if (elementDef.name == "TextInput") {
+        let label = elementDef.attributes.find(x => x.name === "label");
+        if (label) {
+          description = label.value[0].value;
+        }
+      } else if (elementDef.name == "Button" || elementDef.name == "Label") {
+        let label = elementDef.rootCallExpression.arguments[0] as any;
+        if (label) {
+          description = typeof label.value == "string" ? label.value : "";
+        }
+      } else if (elementDef.name == "Tab") {
+        let tabElements = elementDef.attributes.find(x => x.name === "tabElements").value[0];
+        if (tabElements) {
+          children = convertElementsToTreeViewElements(tabElements as any);
+        }
+      } else if (elementDef.name == "TextInputPlus") {
+        let label = (elementDef.rootCallExpression.arguments[0] as any).properties.find(x => x.key.name == "label")
+          .value.property.name;
+        description = label;
       }
-    } else if (elementDef.name == "TextInput") {
-      let label = elementDef.attributes.find(x => x.name === "label");
-      if (label) {
-        description = label.value[0].value;
-      }
-    } else if (elementDef.name == "Button" || elementDef.name == "Label") {
-      let label = elementDef.rootCallExpression.arguments[0] as any;
-      if (label) {
-        description = typeof label.value == "string" ? label.value : "";
-      }
-    } else if (elementDef.name == "Tab") {
-      let tabElements = elementDef.attributes.find(x => x.name === "tabElements").value[0];
-      if (tabElements) {
-        children = convertElementsToTreeViewElements(tabElements as any);
-      }
-    } else if (elementDef.name == "TextInputPlus") {
-      let label = (elementDef.rootCallExpression.arguments[0] as any).properties.find(x => x.key.name == "label").value
-        .property.name;
-      description = label;
-    }
-    return new Element(elementDef.name, description, children);
-  });
+      return new Element(elementDef.name, description, children);
+    });
 }
 
 function callExpressionToElementDefinition(call: TSESTree.CallExpression): ElementDefinition {
