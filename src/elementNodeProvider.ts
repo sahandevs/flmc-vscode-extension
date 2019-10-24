@@ -58,7 +58,7 @@ export class ElementNodeProvider implements vscode.TreeDataProvider<Element> {
     // let elemetns: Element[] = this.lastParsed.imports.map(v => new Element(v.libraryName, "lib"));
     let elements: Element[];
     // try {
-      elements = sourceToTreeViewElements(body);
+    elements = sourceToTreeViewElements(body);
     //   this.lastElements = elements;
     // } catch (e) {
     //   elements = this.lastElements;
@@ -106,7 +106,8 @@ function findElementsPropery(form: TSESTree.ClassDeclaration): TSESTree.ClassPro
 }
 
 function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): Element[] {
-  if (element.elements == null) // handles contaienr with observable
+  if (element.elements == null)
+    // handles contaienr with observable
     return [];
   return element.elements.map(v => {
     let elementDef = callExpressionToElementDefinition(v as TSESTree.CallExpression);
@@ -126,15 +127,19 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
         description = label.value[0].value;
       }
     } else if (elementDef.name == "Button" || elementDef.name == "Label") {
-      let label = (elementDef.rootCallExpression.arguments[0] as any);
+      let label = elementDef.rootCallExpression.arguments[0] as any;
       if (label) {
-        description = typeof(label.value) == "string" ? label.value : "";
+        description = typeof label.value == "string" ? label.value : "";
       }
     } else if (elementDef.name == "Tab") {
       let tabElements = elementDef.attributes.find(x => x.name === "tabElements").value[0];
       if (tabElements) {
         children = convertElementsToTreeViewElements(tabElements as any);
       }
+    } else if (elementDef.name == "TextInputPlus") {
+      let label = (elementDef.rootCallExpression.arguments[0] as any).properties.find(x => x.key.name == "label").value
+        .property.name;
+      description = label;
     }
     return new Element(elementDef.name, description, children);
   });
