@@ -45,6 +45,11 @@
             ],
             "default": "sidebar",
             "description": "Where to display FLMC menu"
+          },
+          "flmc.ignoredElementsInInspector": {
+            "type": "string",
+            "default": "Space",
+            "description": "seprate with `,`"
           }
         }
       }
