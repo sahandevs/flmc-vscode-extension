@@ -1,14 +1,16 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
+import { ElementNodeProvider } from "./nodeDeps";
 
 interface IGlobalContext {
-	flcmPackageVersion?: string;
-	flcmPackageLockVersion?: string;
+  flcmPackageVersion?: string;
+  flcmPackageLockVersion?: string;
 }
 
-export const GlobalContext: IGlobalContext = {
-}
+export const GlobalContext: IGlobalContext = {};
+
+export const Constants = {};
 
 export async function activate(context: vscode.ExtensionContext) {
   //   try {
@@ -28,9 +30,9 @@ export async function activate(context: vscode.ExtensionContext) {
       `FLMC detected`,
       `package.json:${flmcVersion}`,
       `package-lock.json:${flmcLockVersion}`
-	);
-	GlobalContext.flcmPackageLockVersion = flmcVersion;
-	GlobalContext.flcmPackageLockVersion = flmcLockVersion;
+    );
+    GlobalContext.flcmPackageLockVersion = flmcVersion;
+    GlobalContext.flcmPackageLockVersion = flmcLockVersion;
     activeInsideFlmcPackage(context);
     // we can be sure this is a flmc package
   }
@@ -41,11 +43,25 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 async function activeInsideFlmcPackage(context: vscode.ExtensionContext) {
-  let disposable = vscode.commands.registerCommand("extension.helloWorld", () => {
-    vscode.window.showInformationMessage("Hello World!");
+  //   let disposable = vscode.commands.registerCommand("extension.helloWorld", () => {
+  //     vscode.window.showInformationMessage("Hello World!");
+  //   });
+
+  let provider = new ElementNodeProvider();
+
+  vscode.window.registerTreeDataProvider("sidebar-outline-elements", provider);
+
+  if (vscode.window.activeTextEditor != null) {
+    provider.refresh(vscode.window.activeTextEditor.document);
+  }
+
+  vscode.workspace.onDidChangeTextDocument(event => {
+    if (vscode.window.activeTextEditor && event.document == vscode.window.activeTextEditor.document) {
+      provider.refresh(event.document);
+    }
   });
 
-  context.subscriptions.push(disposable);
+  //   context.subscriptions.push(disposable);
 }
 
 // this method is called when your extension is deactivated

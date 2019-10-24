@@ -15,10 +15,38 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
-    "commands": [
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "sidebar-treeview",
+          "title": "FLMC",
+          "icon": "media/logo.svg"
+        }
+      ]
+    },
+    "views": {
+      "sidebar-treeview": [
+        {
+          "id": "sidebar-outline-elements",
+          "name": "Form Elements",
+          "when": "config.flmc.location == sidebar"
+        }
+      ]
+    },
+    "configuration": [
       {
-        "command": "extension.helloWorld",
-        "title": "Hello World"
+        "type": "object",
+        "title": "FLMC config",
+        "properties": {
+          "flmc.location": {
+            "type": "string",
+            "enum": [
+              "sidebar"
+            ],
+            "default": "sidebar",
+            "description": "Where to display FLMC menu"
+          }
+        }
       }
     ]
   },
