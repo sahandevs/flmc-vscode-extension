@@ -123,7 +123,7 @@ function callExpressionToElementDefinition(call: TSESTree.CallExpression): Eleme
     });
     if (_currentCallExp.callee.object) {
       _currentCallExp = _currentCallExp.callee.object;
-      if (_currentCallExp.callee.property == null || _currentCallExp.property == null) {
+      if (_currentCallExp.callee.property == null) {
         break loop;
       }
     } else break loop;
