@@ -38,6 +38,8 @@ export class ElementNodeProvider implements vscode.TreeDataProvider<Element> {
     return element;
   }
 
+  lastElements: Element[] = [];
+
   getChildren(element?: Element): Thenable<Element[]> {
     if (element) return Promise.resolve(element.children);
     if (this.lastParsed == null) {
@@ -54,17 +56,21 @@ export class ElementNodeProvider implements vscode.TreeDataProvider<Element> {
     // }
 
     // let elemetns: Element[] = this.lastParsed.imports.map(v => new Element(v.libraryName, "lib"));
+    let elements: Element[];
+    try {
+      elements = sourceToTreeViewElements(body);
+      this.lastElements = elements;
+    } catch (e) {
+      elements = this.lastElements;
+    }
 
-    return Promise.resolve(sourceToTreeViewElements(body));
+    return Promise.resolve(elements);
   }
 }
 
 export class Element extends vscode.TreeItem {
   constructor(public readonly label: string, private version: string, public children: Element[]) {
-    super(
-      label,
-      children.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None
-    );
+    super(label, children.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None);
   }
 
   get tooltip(): string {
