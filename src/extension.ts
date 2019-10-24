@@ -61,6 +61,10 @@ async function activeInsideFlmcPackage(context: vscode.ExtensionContext) {
     }
   });
 
+  vscode.window.onDidChangeActiveTextEditor((event) => {
+	provider.refresh(event.document);
+  })
+
   //   context.subscriptions.push(disposable);
 }
 
