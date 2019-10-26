@@ -69,9 +69,20 @@ export class ElementNodeProvider implements vscode.TreeDataProvider<Element> {
 }
 
 export class Element extends vscode.TreeItem {
-  constructor(public readonly label: string, private version: string, public children: Element[]) {
+  constructor(
+    public readonly label: string,
+    private version: string,
+    public children: Element[],
+    private lineNumber: number
+  ) {
     super(label, children.length > 0 ? vscode.TreeItemCollapsibleState.Expanded : vscode.TreeItemCollapsibleState.None);
   }
+
+  command = {
+    title: "goto element",
+    command: "extension.flmc.goto-element-line",
+    arguments: [this.lineNumber]
+  };
 
   get tooltip(): string {
     return `${this.label}-${this.version}`;
@@ -149,7 +160,7 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
           .value.property.name;
         description = label;
       }
-      return new Element(elementDef.name, description, children);
+      return new Element(elementDef.name, description, children, elementDef.rootCallExpression.loc.start.line);
     });
 }
 

@@ -51,6 +51,13 @@ async function activeInsideFlmcPackage(context: vscode.ExtensionContext) {
 
   vscode.window.registerTreeDataProvider("sidebar-outline-elements", provider);
 
+  vscode.commands.registerCommand("extension.flmc.goto-element-line", (lineNumber: number) => {
+    let editor = vscode.window.activeTextEditor!;
+    let range = editor.document.lineAt(lineNumber - 1).range;
+    editor.selection = new vscode.Selection(range.start, range.end);
+    editor.revealRange(new vscode.Range(range.start, new vscode.Position(range.end.line + 10, range.end.character)));
+  });
+
   if (vscode.window.activeTextEditor != null) {
     provider.refresh(vscode.window.activeTextEditor.document);
   }
@@ -61,9 +68,9 @@ async function activeInsideFlmcPackage(context: vscode.ExtensionContext) {
     }
   });
 
-  vscode.window.onDidChangeActiveTextEditor((event) => {
-	provider.refresh(event.document);
-  })
+  vscode.window.onDidChangeActiveTextEditor(event => {
+    provider.refresh(event.document);
+  });
 
   //   context.subscriptions.push(disposable);
 }
