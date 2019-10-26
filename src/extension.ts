@@ -48,9 +48,11 @@ async function activeInsideFlmcPackage(context: vscode.ExtensionContext) {
   //   });
 
   let provider = new ElementNodeProvider();
-
-  vscode.window.registerTreeDataProvider("sidebar-outline-elements", provider);
-
+  vscode.window.createTreeView("sidebar-outline-elements", {
+    canSelectMany: false,
+    showCollapseAll: true,
+    treeDataProvider: provider
+  });
   vscode.commands.registerCommand("extension.flmc.goto-element-line", (lineNumber: number) => {
     let editor = vscode.window.activeTextEditor!;
     let range = editor.document.lineAt(lineNumber - 1).range;
