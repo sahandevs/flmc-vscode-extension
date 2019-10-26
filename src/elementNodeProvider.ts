@@ -167,7 +167,12 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
           .value.property.name;
         description = label;
       }
-      return new Element(description, name, children, elementDef.rootCallExpression.loc.start.line);
+      return new Element(
+        elementDef.meta.displayName || description,
+        name,
+        children,
+        elementDef.rootCallExpression.loc.start.line
+      );
     });
 }
 
@@ -192,11 +197,18 @@ function callExpressionToElementDefinition(call: TSESTree.CallExpression): Eleme
   _currentCallExp = _currentCallExp.callee.object == null ? _currentCallExp : _currentCallExp.callee.object;
 
   let name = _currentCallExp.callee == null ? "Unknown" : _currentCallExp.callee.name;
-  let args = _currentCallExp.arguments;
+
+  let metaElement = attributes.find(x => x.name === "meta");
+  let elementMeta: ElementMeta = {};
+  if (metaElement) {
+    elementMeta = convertObjectExpressionToMeta(metaElement.value[0]);
+  }
+
   return {
     name: name == null ? "Unknown" : name,
     attributes: attributes,
-    rootCallExpression: _currentCallExp
+    rootCallExpression: _currentCallExp,
+    meta: elementMeta
   };
 }
 
@@ -217,4 +229,18 @@ interface ElementDefinition {
   name: string;
   attributes: ElementDefinitionAttribute[];
   rootCallExpression: TSESTree.CallExpression;
+  meta: ElementMeta;
+}
+
+type ElementMeta = {
+  displayName?: string;
+};
+
+function convertObjectExpressionToMeta(expr: TSESTree.ObjectExpression): ElementMeta {
+  let _result: any = {};
+  for (let _prop of expr.properties) {
+    let prop = _prop as any;
+    _result[prop.key.name] = prop.value.value;
+  }
+  return _result;
 }
