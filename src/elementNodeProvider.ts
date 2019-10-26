@@ -132,14 +132,17 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
     .map(elementDef => {
       let children: Element[] = [];
       let description = "";
+      let name = elementDef.name;
       if (elementDef.name == "Container" || elementDef.name == "PaddedContainer") {
         children = convertElementsToTreeViewElements(elementDef.rootCallExpression.arguments[0] as any);
         let direction = elementDef.attributes.find(x => x.name === "direction");
         if (direction) {
-          description = direction.value[0].property.name;
+          name = direction.value[0].property.name;
         } else {
-          description = "Column";
+          name = "Column";
         }
+        name = name === "Column" || name === "Row" ? name : "Container";
+        description = "";
       } else if (elementDef.name == "TextInput") {
         let label = elementDef.attributes.find(x => x.name === "label");
         if (label) {
@@ -160,7 +163,7 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
           .value.property.name;
         description = label;
       }
-      return new Element(elementDef.name, description, children, elementDef.rootCallExpression.loc.start.line);
+      return new Element(description, name, children, elementDef.rootCallExpression.loc.start.line);
     });
 }
 
