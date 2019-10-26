@@ -142,11 +142,15 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
           name = "Column";
         }
         name = name === "Column" || name === "Row" ? name : "Container";
+        name = elementDef.name === "PaddedContainer" ? `Padded${name}` : name;
         description = "";
-      } else if (elementDef.name == "TextInput") {
+      } else if (elementDef.name == "TextInput" || elementDef.name == "SelectBox") {
         let label = elementDef.attributes.find(x => x.name === "label");
         if (label) {
           description = label.value[0].value;
+          if (!description) {
+            description = label.value[0].property.name;
+          }
         }
       } else if (elementDef.name == "Button" || elementDef.name == "Label") {
         let label = elementDef.rootCallExpression.arguments[0] as any;
