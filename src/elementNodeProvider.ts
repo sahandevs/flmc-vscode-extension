@@ -164,7 +164,8 @@ function convertElementsToTreeViewElements(element: TSESTree.ArrayExpression): E
         }
       } else if (elementDef.name == "TextInputPlus") {
         let label = (elementDef.rootCallExpression.arguments[0] as any).properties.find(x => x.key.name == "label")
-          .value.property.name;
+          .value;
+        label = label.property != null ? label.property.name : label.value;
         description = label;
       }
       return new Element(
@@ -188,13 +189,16 @@ function callExpressionToElementDefinition(call: TSESTree.CallExpression): Eleme
     });
     if (_currentCallExp.callee.object) {
       _currentCallExp = _currentCallExp.callee.object;
-      if (_currentCallExp.callee.property == null) {
+      if (_currentCallExp.callee == null || _currentCallExp.callee.property == null) {
         break loop;
       }
     } else break loop;
   }
 
-  _currentCallExp = _currentCallExp.callee.object == null ? _currentCallExp : _currentCallExp.callee.object;
+  _currentCallExp =
+    _currentCallExp.callee == null || _currentCallExp.callee.object == null
+      ? _currentCallExp
+      : _currentCallExp.callee.object;
 
   let name = _currentCallExp.callee == null ? "Unknown" : _currentCallExp.callee.name;
 
